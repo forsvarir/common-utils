@@ -51,4 +51,30 @@ class PathIterableTest {
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly("/folder/file.txt");
     }
+
+    @Test
+    void folderWithSingleFile_resumeFromNull_returnsSingleFile() throws IOException {
+        final Path rootFolder = dummyFileSystem.getPath("/folder");
+        Files.createDirectory(rootFolder);
+        final Path lastFile = dummyFileSystem.getPath("/folder/file.txt");
+        Files.createFile(lastFile);
+
+        var iterable = new PathIterable(rootFolder, null);
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly("/folder/file.txt");
+    }
+
+    @Test
+    void folderWithSingleFile_resumeFromRoot_returnsSingleFile() throws IOException {
+        final Path rootFolder = dummyFileSystem.getPath("/folder");
+        Files.createDirectory(rootFolder);
+        final Path lastFile = dummyFileSystem.getPath("/folder/file.txt");
+        Files.createFile(lastFile);
+
+        var iterable = new PathIterable(rootFolder, rootFolder);
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly("/folder/file.txt");
+    }
 }

@@ -21,7 +21,7 @@ public class PathIterable implements Iterable<Path> {
 
     public PathIterable(Path rootFolder, Path fileToResumeAfter) {
         this.rootFolder = rootFolder;
-        this.fileToResumeAfter = fileToResumeAfter;
+        this.fileToResumeAfter = null == fileToResumeAfter ? rootFolder : fileToResumeAfter;
     }
 
     @NotNull
