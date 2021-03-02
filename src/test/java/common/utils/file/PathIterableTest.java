@@ -21,8 +21,21 @@ class PathIterableTest {
         Files.createDirectory(rootFolder);
 
         var iterable = new PathIterable(rootFolder);
-        var files = StreamSupport.stream(iterable.spliterator(), false);
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
-        assertThat(files).isEmpty();
+        assertThat(filesToIterate).isEmpty();
+    }
+
+    @Test
+    void resumeFromLastFile_nothingToIterate() throws IOException {
+        final Path rootFolder = dummyFileSystem.getPath("/folder");
+        Files.createDirectory(rootFolder);
+        final Path lastFile = dummyFileSystem.getPath("/folder/file.txt");
+        Files.createFile(lastFile);
+
+        var iterable = new PathIterable(rootFolder, lastFile);
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate).isEmpty();
     }
 }

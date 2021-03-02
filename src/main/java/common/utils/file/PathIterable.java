@@ -11,6 +11,10 @@ public class PathIterable implements Iterable<Path> {
 
     }
 
+    public PathIterable(Path rootFolder, Path fileToResumeAfter) {
+
+    }
+
     @NotNull
     @Override
     public Iterator<Path> iterator() {
