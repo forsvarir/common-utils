@@ -10,16 +10,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PathIterable implements Iterable<Path> {
+public class ResumableFileIterable implements Iterable<Path> {
     private final Path rootFolder;
     private final Path fileToResumeAfter;
 
-    public PathIterable(Path rootFolder) {
+    public ResumableFileIterable(Path rootFolder) {
         this.rootFolder = rootFolder;
         fileToResumeAfter = rootFolder;
     }
 
-    public PathIterable(Path rootFolder, Path fileToResumeAfter) {
+    public ResumableFileIterable(Path rootFolder, Path fileToResumeAfter) {
         this.rootFolder = rootFolder;
         this.fileToResumeAfter = null == fileToResumeAfter ? rootFolder : fileToResumeAfter;
     }
@@ -27,14 +27,14 @@ public class PathIterable implements Iterable<Path> {
     @NotNull
     @Override
     public Iterator<Path> iterator() {
-        return new PathIterator(rootFolder, fileToResumeAfter);
+        return new ResumableFileIterator(rootFolder, fileToResumeAfter);
     }
 
-    static class PathIterator implements Iterator<Path> {
+    static class ResumableFileIterator implements Iterator<Path> {
 
         private List<Path> toProcess;
 
-        private PathIterator(Path rootFolder, Path fileToResumeAfter) {
+        private ResumableFileIterator(Path rootFolder, Path fileToResumeAfter) {
             setupIterationFromStartPosition(rootFolder, fileToResumeAfter);
         }
 

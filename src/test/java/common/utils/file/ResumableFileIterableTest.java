@@ -15,7 +15,7 @@ import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class PathIterableTest {
+class ResumableFileIterableTest {
     FileSystem dummyFileSystem = Jimfs.newFileSystem(Configuration.unix());
 
     @Test
@@ -23,7 +23,7 @@ class PathIterableTest {
         final Path rootFolder = asPath("/emptyFolder");
         Files.createDirectory(rootFolder);
 
-        var iterable = new PathIterable(rootFolder);
+        var iterable = new ResumableFileIterable(rootFolder);
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate).isEmpty();
@@ -36,7 +36,7 @@ class PathIterableTest {
         final Path lastFile = asPath("/folder/file.txt");
         Files.createFile(lastFile);
 
-        var iterable = new PathIterable(rootFolder, lastFile);
+        var iterable = new ResumableFileIterable(rootFolder, lastFile);
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate).isEmpty();
@@ -49,7 +49,7 @@ class PathIterableTest {
         final Path lastFile = asPath("/folder/file.txt");
         Files.createFile(lastFile);
 
-        var iterable = new PathIterable(rootFolder);
+        var iterable = new ResumableFileIterable(rootFolder);
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly("/folder/file.txt");
@@ -62,7 +62,7 @@ class PathIterableTest {
         final Path lastFile = asPath("/folder/file.txt");
         Files.createFile(lastFile);
 
-        var iterable = new PathIterable(rootFolder, null);
+        var iterable = new ResumableFileIterable(rootFolder, null);
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly("/folder/file.txt");
@@ -75,7 +75,7 @@ class PathIterableTest {
         final Path lastFile = asPath("/folder/file.txt");
         Files.createFile(lastFile);
 
-        var iterable = new PathIterable(rootFolder, rootFolder);
+        var iterable = new ResumableFileIterable(rootFolder, rootFolder);
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly("/folder/file.txt");
@@ -90,7 +90,7 @@ class PathIterableTest {
                 "/folder/file2.txt",
                 "/folder/file3.txt"));
 
-        var iterable = new PathIterable(rootFolder, rootFolder);
+        var iterable = new ResumableFileIterable(rootFolder, rootFolder);
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly(
@@ -109,7 +109,7 @@ class PathIterableTest {
                 "/folder/file2.txt",
                 "/folder/file3.txt"));
 
-        var iterable = new PathIterable(rootFolder, asPath("/folder/file2.txt"));
+        var iterable = new ResumableFileIterable(rootFolder, asPath("/folder/file2.txt"));
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly(
@@ -127,7 +127,7 @@ class PathIterableTest {
                 "/folder/file2.txt",
                 "/folder/file4.txt"));
 
-        var iterable = new PathIterable(rootFolder, asPath("/folder/file2.txt"));
+        var iterable = new ResumableFileIterable(rootFolder, asPath("/folder/file2.txt"));
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly(
