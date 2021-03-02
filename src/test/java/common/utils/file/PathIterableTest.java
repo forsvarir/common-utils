@@ -100,6 +100,47 @@ class PathIterableTest {
         );
     }
 
+    @Test
+    void folderWithMultipleFiles_resumeFromSecondFile_returnsFinalFile () throws IOException {
+        final Path rootFolder = asPath("/folder");
+        Files.createDirectory(rootFolder);
+        final Path file1 = asPath("/folder/file1.txt");
+        final Path file2 = asPath("/folder/file2.txt");
+        final Path file3 = asPath("/folder/file3.txt");
+        Files.createFile(file1);
+        Files.createFile(file3);
+        Files.createFile(file2);
+
+        var iterable = new PathIterable(rootFolder, file2);
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly(
+                "/folder/file3.txt"
+        );
+    }
+
+    @Test
+    void folderWithMultipleFiles_resumeFromSecondFile_returnsRemainingFiles () throws IOException {
+        final Path rootFolder = asPath("/folder");
+        Files.createDirectory(rootFolder);
+        final Path file1 = asPath("/folder/file1.txt");
+        final Path file2 = asPath("/folder/file2.txt");
+        final Path file3 = asPath("/folder/file3.txt");
+        final Path file4 = asPath("/folder/file4.txt");
+        Files.createFile(file1);
+        Files.createFile(file3);
+        Files.createFile(file2);
+        Files.createFile(file4);
+
+        var iterable = new PathIterable(rootFolder, file2);
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly(
+                "/folder/file3.txt",
+                "/folder/file4.txt"
+        );
+    }
+
     @NotNull
     private Path asPath(String path) {
         return dummyFileSystem.getPath(path);
