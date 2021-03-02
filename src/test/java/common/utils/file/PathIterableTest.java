@@ -38,4 +38,17 @@ class PathIterableTest {
 
         assertThat(filesToIterate).isEmpty();
     }
+
+    @Test
+    void folderWithSingleFile_returnsSingleFile() throws IOException {
+        final Path rootFolder = dummyFileSystem.getPath("/folder");
+        Files.createDirectory(rootFolder);
+        final Path lastFile = dummyFileSystem.getPath("/folder/file.txt");
+        Files.createFile(lastFile);
+
+        var iterable = new PathIterable(rootFolder);
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly("/folder/file.txt");
+    }
 }
