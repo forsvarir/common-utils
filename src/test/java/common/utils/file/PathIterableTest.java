@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,12 +85,10 @@ class PathIterableTest {
     void folderWithMultipleFiles_returnsFilesInExpectedOrder() throws IOException {
         final Path rootFolder = asPath("/folder");
         Files.createDirectory(rootFolder);
-        final Path file1 = asPath("/folder/file1.txt");
-        final Path file2 = asPath("/folder/file2.txt");
-        final Path file3 = asPath("/folder/file3.txt");
-        Files.createFile(file1);
-        Files.createFile(file3);
-        Files.createFile(file2);
+        createFiles(Arrays.asList(
+                "/folder/file1.txt",
+                "/folder/file2.txt",
+                "/folder/file3.txt"));
 
         var iterable = new PathIterable(rootFolder, rootFolder);
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
@@ -101,17 +101,15 @@ class PathIterableTest {
     }
 
     @Test
-    void folderWithMultipleFiles_resumeFromSecondFile_returnsFinalFile () throws IOException {
+    void folderWithMultipleFiles_resumeFromSecondFile_returnsFinalFile() throws IOException {
         final Path rootFolder = asPath("/folder");
         Files.createDirectory(rootFolder);
-        final Path file1 = asPath("/folder/file1.txt");
-        final Path file2 = asPath("/folder/file2.txt");
-        final Path file3 = asPath("/folder/file3.txt");
-        Files.createFile(file1);
-        Files.createFile(file3);
-        Files.createFile(file2);
+        createFiles(Arrays.asList(
+                "/folder/file1.txt",
+                "/folder/file2.txt",
+                "/folder/file3.txt"));
 
-        var iterable = new PathIterable(rootFolder, file2);
+        var iterable = new PathIterable(rootFolder, asPath("/folder/file2.txt"));
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly(
@@ -120,19 +118,16 @@ class PathIterableTest {
     }
 
     @Test
-    void folderWithMultipleFiles_resumeFromSecondFile_returnsRemainingFiles () throws IOException {
+    void folderWithMultipleFiles_resumeFromSecondFile_returnsRemainingFiles() throws IOException {
         final Path rootFolder = asPath("/folder");
         Files.createDirectory(rootFolder);
-        final Path file1 = asPath("/folder/file1.txt");
-        final Path file2 = asPath("/folder/file2.txt");
-        final Path file3 = asPath("/folder/file3.txt");
-        final Path file4 = asPath("/folder/file4.txt");
-        Files.createFile(file1);
-        Files.createFile(file3);
-        Files.createFile(file2);
-        Files.createFile(file4);
+        createFiles(Arrays.asList(
+                "/folder/file1.txt",
+                "/folder/file3.txt",
+                "/folder/file2.txt",
+                "/folder/file4.txt"));
 
-        var iterable = new PathIterable(rootFolder, file2);
+        var iterable = new PathIterable(rootFolder, asPath("/folder/file2.txt"));
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
 
         assertThat(filesToIterate.map(Path::toString)).containsExactly(
@@ -144,5 +139,11 @@ class PathIterableTest {
     @NotNull
     private Path asPath(String path) {
         return dummyFileSystem.getPath(path);
+    }
+
+    private void createFiles(List<String> pathsToCreate) throws IOException {
+        for (var path : pathsToCreate) {
+            Files.createFile(asPath(path));
+        }
     }
 }
