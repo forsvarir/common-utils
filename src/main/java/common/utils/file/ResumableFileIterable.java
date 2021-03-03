@@ -40,22 +40,6 @@ public class ResumableFileIterable implements Iterable<Path> {
             setupIterationFromStartPosition(rootFolder, fileToResumeAfter);
         }
 
-        private void setupIterationFromStartPosition(Path rootFolder, Path fileToResumeAfter) {
-            toProcess.add(listFilesInFolder(rootFolder));
-
-            if (!rootFolder.equals(fileToResumeAfter)) {
-                skipFilesUntil(fileToResumeAfter);
-            }
-        }
-
-        private void skipFilesUntil(Path fileToResumeAfter) {
-            while (hasNext()) {
-                if (next().equals(fileToResumeAfter)) {
-                    return;
-                }
-            }
-        }
-
         @Override
         public boolean hasNext() {
             Queue<Path> unopenedFolders = new LinkedList<>();
@@ -100,6 +84,35 @@ public class ResumableFileIterable implements Iterable<Path> {
                 }
             }
             throw new RuntimeException("Next called after last item");
+        }
+
+        private void setupIterationFromStartPosition(Path rootFolder, Path fileToResumeAfter) {
+            toProcess.add(listFilesInFolder(rootFolder));
+
+            if (rootFolder.equals(fileToResumeAfter)) {
+                return;
+            }
+
+            skipFilesUntil(fileToResumeAfter);
+        }
+
+        private void skipFilesUntil(Path fileToResumeAfter) {
+            String startFromLocation = fileToResumeAfter.toString();
+
+            while (!toProcess.isEmpty()) {
+                var currentFolder = toProcess.peek();
+                if (!currentFolder.isEmpty()) {
+                    var currentItem = currentFolder.poll();
+                    if (startFromLocation.equals(currentItem.toString())) {
+                        return;
+                    }
+                    if (shouldIterateFolder(currentItem) && startFromLocation.startsWith(currentItem.toString())) {
+                        toProcess.push(listFilesInFolder(currentItem));
+                    }
+                } else {
+                    toProcess.poll();
+                }
+            }
         }
 
         private boolean shouldIterateFolder(Path path) {
