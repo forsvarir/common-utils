@@ -67,23 +67,20 @@ public class ResumableFileIterable implements Iterable<Path> {
                 for (var itemInFolder : folderToProcess) {
                     if (!Files.isDirectory(itemInFolder)) {
                         return true;
-                    } else {
-                        if (Files.isDirectory(itemInFolder) &&
-                                !Files.isSymbolicLink(itemInFolder)) {
-                            unopenedFolders.add(itemInFolder);
-                        }
+                    }
+                    if (shouldIterateFolder(itemInFolder)) {
+                        unopenedFolders.add(itemInFolder);
                     }
                 }
             }
             while (!unopenedFolders.isEmpty()) {
                 try {
                     for (var file : Files.list(unopenedFolders.poll()).collect(Collectors.toList())) {
-                        if (Files.isDirectory(file)) {
-                            if (!Files.isSymbolicLink(file)) {
-                                unopenedFolders.add(file);
-                            }
-                        } else {
+                        if (!Files.isDirectory(file)) {
                             return true;
+                        }
+                        if (shouldIterateFolder(file)) {
+                            unopenedFolders.add(file);
                         }
                     }
                 } catch (IOException e) {
@@ -99,22 +96,26 @@ public class ResumableFileIterable implements Iterable<Path> {
                 var currentFolder = toProcess.peek();
                 if (!currentFolder.isEmpty()) {
                     var currentItem = currentFolder.poll();
-                    if (Files.isDirectory(currentItem)) {
-                        if (!Files.isSymbolicLink(currentItem)) {
-                            try {
-                                toProcess.push(Files.list(currentItem).collect(Collectors.toCollection(LinkedList::new)));
-                            } catch (IOException e) {
-                                System.out.println("failed to iterate path " + currentItem.toString());
-                            }
-                        }
-                    } else {
+                    if (!Files.isDirectory(currentItem)) {
                         return currentItem;
+                    }
+                    if (shouldIterateFolder(currentItem)) {
+                        try {
+                            toProcess.push(Files.list(currentItem).collect(Collectors.toCollection(LinkedList::new)));
+                        } catch (IOException e) {
+                            System.out.println("failed to iterate path " + currentItem.toString());
+                        }
                     }
                 } else {
                     toProcess.poll();
                 }
             }
             throw new RuntimeException("Next called after last item");
+        }
+
+        private boolean shouldIterateFolder(Path path) {
+            return Files.isDirectory(path) &&
+                    !Files.isSymbolicLink(path);
         }
     }
 }
