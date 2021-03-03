@@ -181,7 +181,7 @@ class ResumableFileIterableTest {
         createFiles(Arrays.asList(
                 "/root/nestedFolder/file1.txt",
                 "/root/nestedFolder/file2.txt"
-                ));
+        ));
 
         var iterable = new ResumableFileIterable(asPath("/root"), asPath("/root/nestedFolder/file1.txt"));
         var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
@@ -189,6 +189,71 @@ class ResumableFileIterableTest {
         assertThat(filesToIterate.map(Path::toString)).containsExactly(
                 "/root/nestedFolder/file2.txt"
         );
+    }
+
+    @Test
+    void linkedFolder_returnsNonLinkedFiles() throws IOException {
+        createDirectories(Arrays.asList(
+                "/root",
+                "/linkedToFolder"
+        ));
+        createFiles(Arrays.asList(
+                "/root/file1.txt",
+                "/linkedToFolder/file2.txt"
+        ));
+
+        Files.createSymbolicLink(asPath("/root/linkFromFolder"),
+                asPath("/linkedToFolder"));
+
+        var iterable = new ResumableFileIterable(asPath("/root"));
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly("/root/file1.txt");
+    }
+
+    @Test
+    void nestedLinkedFolder_returnsNonLinkedFiles() throws IOException {
+        createDirectories(Arrays.asList(
+                "/root",
+                "/root/nestedFolder",
+                "/linkedToFolder"
+        ));
+        createFiles(Arrays.asList(
+                "/root/file1.txt",
+                "/linkedToFolder/file3.txt"
+        ));
+
+        Files.createSymbolicLink(asPath("/root/nestedFolder/linkFromFolder"),
+                asPath("/linkedToFolder"));
+
+        var iterable = new ResumableFileIterable(asPath("/root"));
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly("/root/file1.txt");
+    }
+
+    @Test
+    void linkedFolderWithFilesAfter_returnsNonLinkedFiles() throws IOException {
+        createDirectories(Arrays.asList(
+                "/root",
+                "/linkedToFolder",
+                "/root/zzLastFolder"
+        ));
+        createFiles(Arrays.asList(
+                "/root/file1.txt",
+                "/linkedToFolder/file2.txt",
+                "/root/zzLastFolder/file3.txt"
+        ));
+
+        Files.createSymbolicLink(asPath("/root/linkFromFolder"),
+                asPath("/linkedToFolder"));
+
+        var iterable = new ResumableFileIterable(asPath("/root"));
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly(
+                "/root/file1.txt",
+                "/root/zzLastFolder/file3.txt");
     }
 
     @NotNull

@@ -54,7 +54,7 @@ public class ResumableFileIterable implements Iterable<Path> {
 
         private void skipFilesUntil(Path fileToResumeAfter) {
             while (hasNext()) {
-                if(next().equals(fileToResumeAfter)) {
+                if (next().equals(fileToResumeAfter)) {
                     return;
                 }
             }
@@ -68,7 +68,8 @@ public class ResumableFileIterable implements Iterable<Path> {
                     if (!Files.isDirectory(itemInFolder)) {
                         return true;
                     } else {
-                        if (Files.isDirectory(itemInFolder)) {
+                        if (Files.isDirectory(itemInFolder) &&
+                                !Files.isSymbolicLink(itemInFolder)) {
                             unopenedFolders.add(itemInFolder);
                         }
                     }
@@ -78,7 +79,9 @@ public class ResumableFileIterable implements Iterable<Path> {
                 try {
                     for (var file : Files.list(unopenedFolders.poll()).collect(Collectors.toList())) {
                         if (Files.isDirectory(file)) {
-                            unopenedFolders.add(file);
+                            if (!Files.isSymbolicLink(file)) {
+                                unopenedFolders.add(file);
+                            }
                         } else {
                             return true;
                         }
@@ -97,10 +100,12 @@ public class ResumableFileIterable implements Iterable<Path> {
                 if (!currentFolder.isEmpty()) {
                     var currentItem = currentFolder.poll();
                     if (Files.isDirectory(currentItem)) {
-                        try {
-                            toProcess.push(Files.list(currentItem).collect(Collectors.toCollection(LinkedList::new)));
-                        } catch (IOException e) {
-                            System.out.println("failed to iterate path " + currentItem.toString());
+                        if (!Files.isSymbolicLink(currentItem)) {
+                            try {
+                                toProcess.push(Files.list(currentItem).collect(Collectors.toCollection(LinkedList::new)));
+                            } catch (IOException e) {
+                                System.out.println("failed to iterate path " + currentItem.toString());
+                            }
                         }
                     } else {
                         return currentItem;
