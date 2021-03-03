@@ -1,6 +1,5 @@
 package common.utils.file;
 
-import com.google.common.collect.Lists;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import org.jetbrains.annotations.NotNull;

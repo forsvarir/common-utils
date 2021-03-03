@@ -41,14 +41,10 @@ public class ResumableFileIterable implements Iterable<Path> {
         }
 
         private void setupIterationFromStartPosition(Path rootFolder, Path fileToResumeAfter) {
-            try {
-                toProcess.add(Files.list(rootFolder).collect(Collectors.toCollection(LinkedList::new)));
+            toProcess.add(listFilesInFolder(rootFolder));
 
-                if (!rootFolder.equals(fileToResumeAfter)) {
-                    skipFilesUntil(fileToResumeAfter);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (!rootFolder.equals(fileToResumeAfter)) {
+                skipFilesUntil(fileToResumeAfter);
             }
         }
 
@@ -74,23 +70,20 @@ public class ResumableFileIterable implements Iterable<Path> {
                 }
             }
             while (!unopenedFolders.isEmpty()) {
-                try {
-                    for (var file : Files.list(unopenedFolders.poll()).collect(Collectors.toList())) {
-                        if (!Files.isDirectory(file)) {
-                            return true;
-                        }
-                        if (shouldIterateFolder(file)) {
-                            unopenedFolders.add(file);
-                        }
+                for (var file : listFilesInFolder((unopenedFolders.poll()))) {
+                    if (!Files.isDirectory(file)) {
+                        return true;
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    if (shouldIterateFolder(file)) {
+                        unopenedFolders.add(file);
+                    }
                 }
             }
             return false;
         }
 
         @Override
+        @NotNull
         public Path next() {
             while (!toProcess.isEmpty()) {
                 var currentFolder = toProcess.peek();
@@ -100,11 +93,7 @@ public class ResumableFileIterable implements Iterable<Path> {
                         return currentItem;
                     }
                     if (shouldIterateFolder(currentItem)) {
-                        try {
-                            toProcess.push(Files.list(currentItem).collect(Collectors.toCollection(LinkedList::new)));
-                        } catch (IOException e) {
-                            System.out.println("failed to iterate path " + currentItem.toString());
-                        }
+                        toProcess.push(listFilesInFolder(currentItem));
                     }
                 } else {
                     toProcess.poll();
@@ -117,6 +106,15 @@ public class ResumableFileIterable implements Iterable<Path> {
             return Files.isDirectory(path) &&
                     !Files.isSymbolicLink(path) &&
                     Files.isReadable(path);
+        }
+
+        @NotNull
+        private LinkedList<Path> listFilesInFolder(Path folder) {
+            try {
+                return Files.list(folder).collect(Collectors.toCollection(LinkedList::new));
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to iterate path: " + folder.toString());
+            }
         }
     }
 }
