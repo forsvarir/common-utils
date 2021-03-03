@@ -115,7 +115,8 @@ public class ResumableFileIterable implements Iterable<Path> {
 
         private boolean shouldIterateFolder(Path path) {
             return Files.isDirectory(path) &&
-                    !Files.isSymbolicLink(path);
+                    !Files.isSymbolicLink(path) &&
+                    Files.isReadable(path);
         }
     }
 }

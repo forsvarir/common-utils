@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -254,6 +255,26 @@ class ResumableFileIterableTest {
         assertThat(filesToIterate.map(Path::toString)).containsExactly(
                 "/root/file1.txt",
                 "/root/zzLastFolder/file3.txt");
+    }
+
+    @Test
+    @Disabled("JimFS doesn't support permissions")
+    void unReadableFolder_returnsReadableFiles() throws IOException {
+        createDirectories(Arrays.asList(
+                "/root",
+                "/root/unReadableFolder"
+        ));
+        createFiles(Arrays.asList(
+                "/root/file1.txt",
+                "/root/unReadableFolder/file2.txt"
+        ));
+
+        Files.setPosixFilePermissions(asPath("/root/unReadableFolder"), Collections.emptySet());
+
+        var iterable = new ResumableFileIterable(asPath("/root"));
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly("/root/file1.txt");
     }
 
     @NotNull
