@@ -53,8 +53,10 @@ public class ResumableFileIterable implements Iterable<Path> {
         }
 
         private void skipFilesUntil(Path fileToResumeAfter) {
-            while (hasNext() && !next().equals(fileToResumeAfter)) {
-
+            while (hasNext()) {
+                if(next().equals(fileToResumeAfter)) {
+                    return;
+                }
             }
         }
 

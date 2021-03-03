@@ -172,6 +172,25 @@ class ResumableFileIterableTest {
         );
     }
 
+    @Test
+    void nestedFolderContainingTwoFilesResumedFromFirstFile_returnsRemainingFile() throws IOException {
+        createDirectories(Arrays.asList(
+                "/root",
+                "/root/nestedFolder"
+        ));
+        createFiles(Arrays.asList(
+                "/root/nestedFolder/file1.txt",
+                "/root/nestedFolder/file2.txt"
+                ));
+
+        var iterable = new ResumableFileIterable(asPath("/root"), asPath("/root/nestedFolder/file1.txt"));
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly(
+                "/root/nestedFolder/file2.txt"
+        );
+    }
+
     @NotNull
     private Path asPath(String path) {
         return dummyFileSystem.getPath(path);
