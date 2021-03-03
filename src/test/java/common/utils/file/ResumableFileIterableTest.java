@@ -1,5 +1,6 @@
 package common.utils.file;
 
+import com.google.common.collect.Lists;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +11,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
@@ -136,9 +138,32 @@ class ResumableFileIterableTest {
         );
     }
 
+    @Test
+    void nestedFolderAndFile_folderIgnoredReturnsFile() throws IOException {
+        createDirectories(Arrays.asList(
+                "/root",
+                "/root/nestedFolder"
+        ));
+        createFiles(Collections.singletonList(
+                "/root/file1.txt"));
+
+        var iterable = new ResumableFileIterable(asPath("/root"));
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly(
+                "/root/file1.txt"
+        );
+    }
+
     @NotNull
     private Path asPath(String path) {
         return dummyFileSystem.getPath(path);
+    }
+
+    private void createDirectories(List<String> foldersToCreate) throws IOException {
+        for (var path : foldersToCreate) {
+            Files.createDirectory(asPath(path));
+        }
     }
 
     private void createFiles(List<String> pathsToCreate) throws IOException {

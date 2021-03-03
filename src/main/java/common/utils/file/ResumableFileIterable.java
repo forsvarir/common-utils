@@ -59,14 +59,23 @@ public class ResumableFileIterable implements Iterable<Path> {
 
         @Override
         public boolean hasNext() {
-            return !toProcess.isEmpty();
+            for(var item : toProcess) {
+                if(!Files.isDirectory(item)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
         public Path next() {
-            var firstItem = toProcess.get(0);
+            var item = toProcess.get(0);
+            while(Files.isDirectory(item)) {
+                toProcess.remove(0);
+                item = toProcess.get(0);
+            }
             toProcess.remove(0);
-            return firstItem;
+            return item;
         }
     }
 }
