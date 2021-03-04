@@ -1,4 +1,4 @@
-package common.utils.file;
+package forsvarir.common.utils.file;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;

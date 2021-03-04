@@ -1,4 +1,4 @@
-package common.utils.file;
+package forsvarir.common.utils.file;
 
 import org.jetbrains.annotations.NotNull;
 
