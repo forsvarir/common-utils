@@ -14,11 +14,11 @@ public class FileWalker {
         return walk(root, from, ResumableFileIterable::new);
     }
 
-    static Stream<Path> walk(Path root, BiFunction<Path, Path, ResumableFileIterable> iterableSupplier) {
+    static Stream<Path> walk(Path root, BiFunction<Path, Path, Iterable<Path>> iterableSupplier) {
         return StreamSupport.stream(iterableSupplier.apply(root, root).spliterator(), false);
     }
 
-    static Stream<Path> walk(Path root, Path from, BiFunction<Path, Path, ResumableFileIterable> iterableSupplier) {
+    static Stream<Path> walk(Path root, Path from, BiFunction<Path, Path, Iterable<Path>> iterableSupplier) {
         return StreamSupport.stream(iterableSupplier.apply(root, from).spliterator(), false);
     }
 }
