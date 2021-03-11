@@ -5,11 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ResumableFileIterable implements Iterable<Path> {
@@ -45,7 +41,7 @@ public class ResumableFileIterable implements Iterable<Path> {
             Queue<Path> unopenedFolders = new LinkedList<>();
             for (var folderToProcess : toProcess) {
                 for (var itemInFolder : folderToProcess) {
-                    if (!Files.isDirectory(itemInFolder)) {
+                    if (isValidFile(itemInFolder)) {
                         return true;
                     }
                     if (shouldIterateFolder(itemInFolder)) {
@@ -55,7 +51,7 @@ public class ResumableFileIterable implements Iterable<Path> {
             }
             while (!unopenedFolders.isEmpty()) {
                 for (var file : listFilesInFolder((unopenedFolders.poll()))) {
-                    if (!Files.isDirectory(file)) {
+                    if (isValidFile(file)) {
                         return true;
                     }
                     if (shouldIterateFolder(file)) {
@@ -73,7 +69,7 @@ public class ResumableFileIterable implements Iterable<Path> {
                 var currentFolder = toProcess.peek();
                 if (!currentFolder.isEmpty()) {
                     var currentItem = currentFolder.poll();
-                    if (!Files.isDirectory(currentItem)) {
+                    if (isValidFile(currentItem)) {
                         return currentItem;
                     }
                     if (shouldIterateFolder(currentItem)) {
@@ -113,6 +109,11 @@ public class ResumableFileIterable implements Iterable<Path> {
                     toProcess.poll();
                 }
             }
+        }
+
+        private boolean isValidFile(Path itemInFolder) {
+            return !Files.isDirectory(itemInFolder) &&
+                    !Files.isSymbolicLink(itemInFolder);
         }
 
         private boolean shouldIterateFolder(Path path) {

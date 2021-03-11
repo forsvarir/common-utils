@@ -257,6 +257,30 @@ class ResumableFileIterableTest {
     }
 
     @Test
+    void linkedFileWithFilesAfter_returnsOnlyNonLinkedFiles() throws IOException {
+        createDirectories(Arrays.asList(
+                "/root",
+                "/linkedToFolder",
+                "/root/zzLastFolder"
+        ));
+        createFiles(Arrays.asList(
+                "/root/file1.txt",
+                "/linkedToFolder/linkedToFile.txt",
+                "/root/zzLastFolder/file3.txt"
+        ));
+
+        Files.createSymbolicLink(asPath("/root/linkToFile.txt"),
+                asPath("/linkedToFolder/linkedToFile.txt"));
+
+        var iterable = new ResumableFileIterable(asPath("/root"));
+        var filesToIterate = StreamSupport.stream(iterable.spliterator(), false);
+
+        assertThat(filesToIterate.map(Path::toString)).containsExactly(
+                "/root/file1.txt",
+                "/root/zzLastFolder/file3.txt");
+    }
+
+    @Test
     @Disabled("JimFS doesn't support permissions")
     void unReadableFolder_returnsReadableFiles() throws IOException {
         createDirectories(Arrays.asList(
